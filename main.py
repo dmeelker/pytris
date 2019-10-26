@@ -1,4 +1,5 @@
 import pygame
+import pygame.freetype
 import os
 
 import blocks
@@ -8,6 +9,7 @@ from timer import Stopwatch
 screen = None
 running = True
 
+backdropImage = None
 blockImage = None
 block = None
 nextBlock = None
@@ -21,7 +23,15 @@ fallSpeed = baseFallSpeed
 clock = pygame.time.Clock()
 dropStopwatch = Stopwatch(pygame.time.get_ticks())
 
+playFieldArea = pygame.Rect(322, 110, 150, 300)
+nextBlockArea = pygame.Rect(496, 110, 60, 60)
+scoreArea = pygame.Rect(496, 194, 159, 62)
+
+font = None
+scoreLabel = None
+highScoreLabel = None
 score = 0
+highScore = 0
 lastLineWasTetris = False
 
 def start():
@@ -33,20 +43,31 @@ def start():
         clock.tick(60)
 
 def initialize():
-    global screen,clock
+    global screen,clock,font
     pygame.init()
-    pygame.display.set_caption("minimal program")
+    pygame.display.set_caption("Pytris")
     screen = pygame.display.set_mode((800, 600))
     pygame.key.set_repeat(100, 50)
 
+    font = pygame.freetype.Font(None)
+    
+    updateHighScore(0)
+
     loadImages()
+    screen.blit(backdropImage, (0, 0))
+
+    newGame()
+
+def newGame():
+    updateScore(0)
 
     playfield.initialize((10, 22))
-
     spawnBlock()
 
 def loadImages():
-    global blockImage
+    global backdropImage,blockImage
+
+    backdropImage = pygame.image.load(os.path.join('images', 'backdrop.png'))
     blockImage = pygame.image.load(os.path.join('images', 'block-red.png'))
 
 def update():
@@ -55,6 +76,14 @@ def update():
     time = pygame.time.get_ticks()
 
     updateBlockDrop(time)
+    if playfield.lineContainsBlocks(1):
+        endGame()
+
+def endGame():
+    global score, highScore
+    print('Game over!')
+    updateHighScore(score)
+    newGame()
 
 def updateBlockDrop(time):
     timePassed = dropStopwatch.update(time)
@@ -75,6 +104,7 @@ def spawnBlock():
         nextBlock.image = blockImage
     
     block = nextBlock
+    block.location = ((playfield.width / 2) - (block.size / 2),0)
 
     nextBlock = blocks.Block(blocks.randomBlock())
     nextBlock.image = blockImage
@@ -116,16 +146,25 @@ def stopFastDrop():
     fallSpeed = baseFallSpeed 
 
 def render():
-    screen.fill((0, 0, 0))
+    screen.fill((0, 0, 0), playFieldArea)
+    screen.fill((0, 0, 0), nextBlockArea)
+    screen.fill((0, 0, 0), scoreArea)
     
-    playfield.render(screen)
-    block.render(screen, block.location)
-    nextBlock.render(screen, (12, 2))
+    screen.set_clip(playFieldArea)
+    playfield.render(screen, (playFieldArea.left, playFieldArea.top - 30))
+    block.render(screen, (playFieldArea.left + (block.location[0] * 15), playFieldArea.top - 30 + (block.location[1] * 15)))
+    screen.set_clip(None)
+
+    screen.blit(scoreLabel[0], (scoreArea.left + 5, scoreArea.top + 5))
+    screen.blit(highScoreLabel[0], (scoreArea.left + 5, scoreArea.top + 20))
+    
+
+    nextBlock.render(screen, (nextBlockArea.left, nextBlockArea.top))
 
     pygame.display.flip()
 
 def removeFullRows():
-    global score, lastLineWasTetris
+    global lastLineWasTetris
     fullRows = playfield.getFullRows()
     clearedRowCount = len(fullRows)
     if clearedRowCount == 0:
@@ -134,9 +173,26 @@ def removeFullRows():
     for y in fullRows:
         playfield.removeRow(y)
 
-    score += calculatePointsForClearedRows(clearedRowCount)
+    updateScore(score + calculatePointsForClearedRows(clearedRowCount))
     lastLineWasTetris = clearedRowCount == 4
-    print('Score: ' + str(score))
+
+def updateScore(newScore):
+    global score
+    score = newScore
+    updateScoreLabel()
+
+def updateScoreLabel():
+    global scoreLabel
+    scoreLabel = font.render(str(score), fgcolor = (255, 255, 255), size=12)
+
+def updateHighScore(newScore):
+    global highScore
+    highScore = newScore
+    updateHighScoreLabel()
+
+def updateHighScoreLabel():
+    global highScoreLabel
+    highScoreLabel = font.render(str(highScore), fgcolor = (255, 255, 255), size=12)
 
 def calculatePointsForClearedRows(rowCount):
     if rowCount == 4:

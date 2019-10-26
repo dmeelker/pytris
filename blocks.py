@@ -42,6 +42,13 @@ blockTypes = [iShape, lShape, reverseLShape, blockShape, stepShape, reverseStepS
 def randomBlock():
     return blockTypes[random.randint(0, len(blockTypes) - 1)]
 
+def copyBlockData(data):
+    copy = []
+    size = len(data[0])
+    for y in range(size):
+        copy.append(list(data[y]))
+    return copy
+
 class Block:
     data = None
     size = 0
@@ -49,17 +56,17 @@ class Block:
     image = None
     
     def __init__(self, data):
-        self.data = data
+        self.data = copyBlockData(data)
         self.size = len(data[0])
 
     def render(self, screen, location):
         for y in range(self.size):
             for x in range(self.size):
                 if self.data[y][x] == 1:
-                    screen.blit(self.image, ((location[0] * 15) + (x * 15), (location[1] * 15) + (y * 15)))
+                    screen.blit(self.image, (location[0] + (x * 15), location[1] + (y * 15)))
 
     def rotateRight(self):
-        originalData = self.getCopyOfData()
+        originalData = copyBlockData(self.data)
         self.clearData()
 
         for y in range(self.size):
@@ -78,12 +85,6 @@ class Block:
 
     def moveRight(self):
         self.location = (self.location[0] + 1, self.location[1])
-
-    def getCopyOfData(self):
-        copy = []
-        for y in range(self.size):
-            copy.append(list(self.data[y]))
-        return copy
 
     def clearData(self):
         for y in range(self.size):

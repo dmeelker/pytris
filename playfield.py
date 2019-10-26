@@ -5,9 +5,10 @@ width = 0
 height = 0
 
 def initialize(size):
-    global width, height
+    global width, height, cells
     width = size[0]
     height = size[1]
+    cells = []
 
     for x in range(width):
         column = []
@@ -15,13 +16,13 @@ def initialize(size):
             column.append(None)
         cells.append(column)
 
-def render(screen):
+def render(screen, location):
     for x in range(width):
         for y in range(height):
             cell = cells[x][y]
 
             if not cell is None:
-                screen.blit(cell, (x * 15, y * 15))
+                screen.blit(cell, (location[0] + (x * 15), location[1] + (y * 15)))
 
 def solidifyBlock(block):
     for y in range(block.size):
@@ -75,3 +76,9 @@ def removeRow(y):
         for x in range(width):
             cells[x][upperY + 1] = cells[x][upperY]
             cells[x][upperY] = None
+
+def lineContainsBlocks(line):
+    for x in range(width):
+        if not cells[x][line] is None:
+            return True
+    return False
