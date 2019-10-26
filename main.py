@@ -46,7 +46,7 @@ def initialize():
     global screen,clock,font
     pygame.init()
     pygame.display.set_caption("Pytris")
-    screen = pygame.display.set_mode((800, 600))
+    screen = pygame.display.set_mode((800, 600)) # , pygame.FULLSCREEN)
     pygame.key.set_repeat(100, 50)
 
     font = pygame.freetype.Font(None)
@@ -115,7 +115,9 @@ def handleEvents():
         if event.type == pygame.QUIT:
             running = False
         elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_z:
+            if event.key == pygame.K_ESCAPE:
+                running = False
+            elif event.key == pygame.K_z:
                 block.rotateLeft()
             elif event.key == pygame.K_x:
                 block.rotateRight()
@@ -158,7 +160,6 @@ def render():
     screen.blit(scoreLabel[0], (scoreArea.left + 5, scoreArea.top + 5))
     screen.blit(highScoreLabel[0], (scoreArea.left + 5, scoreArea.top + 20))
     
-
     nextBlock.render(screen, (nextBlockArea.left, nextBlockArea.top))
 
     pygame.display.flip()
