@@ -104,7 +104,7 @@ def spawnBlock():
         nextBlock.image = blockImage
     
     block = nextBlock
-    block.location = ((playfield.width / 2) - (block.size / 2),0)
+    block.location = (int((playfield.width / 2) - (block.size / 2)),0)
 
     nextBlock = blocks.Block(blocks.randomBlock())
     nextBlock.image = blockImage
